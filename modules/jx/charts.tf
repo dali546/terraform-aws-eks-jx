@@ -30,7 +30,4 @@ resource "helm_release" "jx-git-operator" {
   lifecycle {
     ignore_changes = all
   }
-  depends_on = [
-    null_resource.kubeconfig
-  ]
 }

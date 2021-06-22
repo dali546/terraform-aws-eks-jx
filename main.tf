@@ -8,6 +8,11 @@ provider "helm" {
     token                  = module.cluster.cluster_token
   }
 }
+provider "kubernetes" {
+  host                   = module.cluster.cluster_host
+  cluster_ca_certificate = module.cluster.cluster_ca_certificate
+  token                  = module.cluster.cluster_token
+}
 
 resource "random_string" "suffix" {
   length  = 8
@@ -68,7 +73,6 @@ module "cluster" {
   use_kms_s3                            = var.use_kms_s3
   s3_kms_arn                            = var.s3_kms_arn
   is_jx2                                = var.is_jx2
-  content                               = local.content
   cluster_endpoint_public_access        = var.cluster_endpoint_public_access
   cluster_endpoint_public_access_cidrs  = var.cluster_endpoint_public_access_cidrs
   cluster_endpoint_private_access       = var.cluster_endpoint_private_access
@@ -78,9 +82,6 @@ module "cluster" {
   lt_desired_nodes_per_subnet           = var.lt_desired_nodes_per_subnet
   lt_min_nodes_per_subnet               = var.lt_min_nodes_per_subnet
   lt_max_nodes_per_subnet               = var.lt_max_nodes_per_subnet
-  jx_git_url                            = var.jx_git_url
-  jx_bot_username                       = var.jx_bot_username
-  jx_bot_token                          = var.jx_bot_token
   cluster_encryption_config             = var.cluster_encryption_config
   create_autoscaler_role                = var.create_autoscaler_role
   create_bucketrepo_role                = var.create_bucketrepo_role
@@ -93,6 +94,20 @@ module "cluster" {
   create_ssm_role                       = var.create_ssm_role
   create_tekton_role                    = var.create_tekton_role
   additional_tekton_role_policy_arns    = var.additional_tekton_role_policy_arns
+}
+
+module "jx" {
+  source = "./modules/jx"
+
+  is_jx2          = var.is_jx2
+  content         = local.content
+  jx_git_url      = var.jx_git_url
+  jx_bot_username = var.jx_bot_username
+  jx_bot_token    = var.jx_bot_token
+
+  depends_on = [
+    module.cluster
+  ]
 }
 
 // ----------------------------------------------------------------------------
